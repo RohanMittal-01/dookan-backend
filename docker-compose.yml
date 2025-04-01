@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  flask-api:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - MONGO_URI=mongodb://mongodb:${MONGO_PORT}/systemdb
+      - POSTGRES_URI=postgresql://${POSTGRES_USERNAME}:${POSTGRES_PASSWORD}@postgres/${APPLICATION_DATABASE}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SHOPIFY_STORE=${SHOPIFY_STORE}
+      - SHOPIFY_ACCESS_TOKEN=${SHOPIFY_ACCESS_TOKEN}
+
+  postgres:
+    image: bitnami/postgresql:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRESQL_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=postgres
+      - APPLICATION_DATABASE=${POSTGRES_DATABASE}
+    ports:
+      - "${POSTGRES_PORT}:5433"
+    volumes:
+      - postgres_data:/bitnami/postgresql
+      - ./init-postgres.sh:/docker-entrypoint-initdb.d/init-postgres.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "${MONGO_PORT}:27017"
+
+volumes:
+  postgres_data:
