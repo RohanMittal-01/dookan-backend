@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from app.mongo.dbConnection import init_db as mongo_init_db
 from app.psql.dbConnection import init_db as psql_init_db
 
@@ -8,6 +9,9 @@ def create_app():
 
     # Load configurations
     app.config.from_object('config.Config')
+
+    # Initialize CORS
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
     # Initialize DB
     mongo_init_db(app)

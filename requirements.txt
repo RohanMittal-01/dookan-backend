@@ -8,3 +8,4 @@ ShopifyAPI==12.3.0
 Werkzeug==2.3.7
 requests==2.31.0
 bcrypt==4.1.2
+Flask-CORS==4.0.0
